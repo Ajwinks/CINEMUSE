@@ -1,173 +1,61 @@
+// app/page.tsx
 // @ts-nocheck
-'use client';
+"use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Film,
-  Sparkles,
-  MessageCircle,
+  Brain,
+  Check,
+  ChevronRight,
+  Clapperboard,
   Clock3,
+  Coffee,
+  Film,
   Globe2,
   Heart,
-  ThumbsDown,
-  Star,
-  Brain,
-  ChevronRight,
-  Play,
-  RefreshCcw,
-  Moon,
-  Coffee,
-  Zap,
-  User,
   LogIn,
   LogOut,
+  MessageCircle,
+  Moon,
+  Play,
   Plus,
-  Clapperboard,
-  Check,
+  RefreshCcw,
+  Sparkles,
+  Star,
+  ThumbsDown,
+  User,
   X,
+  Zap,
 } from "lucide-react";
-import { supabase } from "../lib/supabaseClient";
-
-const MOVIES = [
-  {
-    id: 1,
-    title: "Her",
-    year: 2013,
-    country: "USA",
-    language: "English",
-    runtime: 126,
-    genres: ["Drama", "Romance", "Sci-Fi"],
-    pace: "slow-burn",
-    moodTags: ["lonely", "emotional", "reflective", "warm"],
-    attention: "medium",
-    description: "A tender futuristic love story about connection, solitude, and emotional intimacy.",
-    why: "Fits emotional, reflective nights and works well when you want depth without heavy complexity.",
-    backdrop: "https://images.unsplash.com/photo-1517602302552-471fe67acf66?auto=format&fit=crop&w=1600&q=80",
-  },
-  {
-    id: 2,
-    title: "Mad Max: Fury Road",
-    year: 2015,
-    country: "Australia / USA",
-    language: "English",
-    runtime: 120,
-    genres: ["Action", "Adventure"],
-    pace: "fast",
-    moodTags: ["excited", "intense", "adrenaline"],
-    attention: "low",
-    description: "A relentless chase film with stunning visuals, explosive energy, and almost no wasted time.",
-    why: "Perfect when you want immediate momentum and zero patience-testing setup.",
-    backdrop: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1600&q=80",
-  },
-  {
-    id: 3,
-    title: "Perfect Days",
-    year: 2023,
-    country: "Japan",
-    language: "Japanese",
-    runtime: 124,
-    genres: ["Drama"],
-    pace: "slow-burn",
-    moodTags: ["calm", "healing", "quiet", "reflective"],
-    attention: "high",
-    description: "A meditative portrait of routine, beauty, loneliness, and quiet joy in everyday life.",
-    why: "Best for calm moods when you want something gentle, intimate, and quietly meaningful.",
-    backdrop: "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?auto=format&fit=crop&w=1600&q=80",
-  },
-  {
-    id: 4,
-    title: "Parasite",
-    year: 2019,
-    country: "South Korea",
-    language: "Korean",
-    runtime: 132,
-    genres: ["Thriller", "Drama", "Dark Comedy"],
-    pace: "medium",
-    moodTags: ["curious", "smart", "dark", "tense"],
-    attention: "medium",
-    description: "A razor-sharp class thriller that shifts tones brilliantly while staying gripping throughout.",
-    why: "Strong pick if you want intelligent storytelling with tension, style, and memorable turns.",
-    backdrop: "https://images.unsplash.com/photo-1505685296765-3a2736de412f?auto=format&fit=crop&w=1600&q=80",
-  },
-  {
-    id: 5,
-    title: "Paddington 2",
-    year: 2017,
-    country: "UK",
-    language: "English",
-    runtime: 103,
-    genres: ["Family", "Comedy", "Adventure"],
-    pace: "easy",
-    moodTags: ["comfort", "happy", "warm", "light"],
-    attention: "low",
-    description: "An irresistibly charming comfort watch full of kindness, warmth, and playful humor.",
-    why: "Excellent when you want something light, wholesome, and impossible to regret.",
-    backdrop: "https://images.unsplash.com/photo-1513106580091-1d82408b8cd6?auto=format&fit=crop&w=1600&q=80",
-  },
-  {
-    id: 6,
-    title: "Prisoners",
-    year: 2013,
-    country: "USA",
-    language: "English",
-    runtime: 153,
-    genres: ["Thriller", "Mystery", "Crime"],
-    pace: "medium",
-    moodTags: ["dark", "tense", "serious", "intense"],
-    attention: "high",
-    description: "A bleak, absorbing mystery driven by desperation, moral conflict, and sustained tension.",
-    why: "Great for serious thriller mode when you want something heavy, gripping, and immersive.",
-    backdrop: "https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&w=1600&q=80",
-  },
-];
-
-const CHAT_PRESETS = [
-  "I want something emotional but not depressing",
-  "Give me a fast movie, I’m tired",
-  "I want a smart thriller tonight",
-  "Something warm and comforting",
-  "I’m okay with subtitles",
-];
-
-const INDUSTRIES = [
-  "Hollywood",
-  "Mollywood",
-  "Tollywood",
-  "Kollywood",
-  "Bollywood",
-  "Sandalwood",
-];
-
-const TMDB_SEED = [
-  { query: "Inception", industry: "Hollywood", genres: ["Sci-Fi", "Thriller"] },
-  { query: "Interstellar", industry: "Hollywood", genres: ["Sci-Fi", "Drama"] },
-  { query: "Drishyam 2013", industry: "Mollywood", genres: ["Thriller", "Drama"] },
-  { query: "Bangalore Days", industry: "Mollywood", genres: ["Drama", "Comedy"] },
-  { query: "RRR", industry: "Tollywood", genres: ["Action", "Drama"] },
-  { query: "Baahubali 2", industry: "Tollywood", genres: ["Action", "Adventure"] },
-  { query: "96 Tamil", industry: "Kollywood", genres: ["Romance", "Drama"] },
-  { query: "Vikram 2022", industry: "Kollywood", genres: ["Action", "Thriller"] },
-  { query: "3 Idiots", industry: "Bollywood", genres: ["Comedy", "Drama"] },
-  { query: "Dangal", industry: "Bollywood", genres: ["Drama", "Sports"] },
-  { query: "Kantara", industry: "Sandalwood", genres: ["Action", "Mystery"] },
-  { query: "KGF Chapter 1", industry: "Sandalwood", genres: ["Action", "Crime"] },
-];
-
-const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
+import {
+  CHAT_PRESETS,
+  INDUSTRIES,
+  MOVIE_LIBRARY_SEED,
+  PLACEHOLDER_BACKDROP,
+  PLACEHOLDER_POSTER,
+  buildFallbackLibrary,
+  buildReason,
+  fetchMovieLibraryFromTMDB,
+  inferUserType,
+  pickBalancedOnboarding,
+  scoreMovie,
+} from "@/lib/movieLibrary";
 
 const defaultProfile = {
-  likedGenres: ["Drama", "Thriller"],
+  likedGenres: [],
+  likedIndustries: [],
   subtitleComfort: true,
   attention: "low",
   mood: "emotional",
-  chat: "I want something emotional but not depressing",
+  chat: CHAT_PRESETS[0],
   watched: [],
   disliked: [],
   reviews: [],
   watchedEntries: [],
   onboardingComplete: false,
   onboardingIndex: 0,
+  onboardingQueue: [],
 };
 
 const storage = {
@@ -178,13 +66,13 @@ const storage = {
       return {};
     }
   },
-  saveUsers(nextUsers) {
+  saveUsers(nextUsers: Record<string, any>) {
     localStorage.setItem("cinemuse-users", JSON.stringify(nextUsers));
   },
   getCurrentUser() {
     return localStorage.getItem("cinemuse-current-user") || "";
   },
-  setCurrentUser(name) {
+  setCurrentUser(name: string) {
     localStorage.setItem("cinemuse-current-user", name);
   },
   clearCurrentUser() {
@@ -192,47 +80,29 @@ const storage = {
   },
 };
 
-function scoreMovie(movie, profile, mood, chat, watched, disliked) {
-  let score = 0;
+function Badge({ children, tone = "default" }: { children: React.ReactNode; tone?: "default" | "accent" | "soft" }) {
+  const tones = {
+    default: "border-white/15 bg-white/10 text-white/80",
+    accent: "border-violet-300/25 bg-violet-400/10 text-violet-100",
+    soft: "border-white/10 bg-black/25 text-white/70",
+  };
 
-  if (watched.includes(movie.title)) score -= 100;
-  if (disliked.includes(movie.title)) score -= 35;
-
-  movie.genres.forEach((g) => {
-    if (profile.likedGenres.includes(g)) score += 10;
-  });
-
-  if (profile.subtitleComfort && movie.language !== "English") score += 7;
-  if (!profile.subtitleComfort && movie.language !== "English") score -= 6;
-
-  if (profile.attention === "low" && ["fast", "easy"].includes(movie.pace)) score += 12;
-  if (profile.attention === "low" && movie.attention === "high") score -= 8;
-  if (profile.attention === "high" && movie.attention === "high") score += 6;
-
-  if (movie.moodTags.includes(mood)) score += 16;
-
-  const q = chat.toLowerCase();
-  if (q.includes("fast") && movie.pace === "fast") score += 15;
-  if (q.includes("slow") && movie.pace === "slow-burn") score += 10;
-  if (q.includes("emotional") && movie.moodTags.some((t) => ["emotional", "warm", "reflective"].includes(t))) score += 12;
-  if (q.includes("thriller") && movie.genres.includes("Thriller")) score += 14;
-  if ((q.includes("comfort") || q.includes("warm")) && movie.moodTags.some((t) => ["comfort", "warm", "happy", "light"].includes(t))) score += 15;
-  if (q.includes("subtitles") && movie.language !== "English") score += 12;
-  if (q.includes("not depressing") && movie.moodTags.includes("dark")) score -= 10;
-
-  score += Math.random() * 2;
-  return score;
-}
-
-function Badge({ children }) {
   return (
-    <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs text-white/80 backdrop-blur-md">
+    <span className={`rounded-full border px-3 py-1 text-xs backdrop-blur-md ${tones[tone]}`}>
       {children}
     </span>
   );
 }
 
-function SectionTitle({ icon: Icon, title, subtitle }) {
+function SectionTitle({
+  icon: Icon,
+  title,
+  subtitle,
+}: {
+  icon: any;
+  title: string;
+  subtitle: string;
+}) {
   return (
     <div className="mb-4">
       <div className="flex items-center gap-2 text-white">
@@ -244,66 +114,165 @@ function SectionTitle({ icon: Icon, title, subtitle }) {
   );
 }
 
-function StarPicker({ rating, onChange }) {
+function StarPicker({
+  rating,
+  onChange,
+}: {
+  rating: number;
+  onChange: (value: number) => void;
+}) {
   return (
     <div className="flex items-center gap-1">
       {[1, 2, 3, 4, 5].map((value) => (
-        <button key={value} type="button" onClick={() => onChange(value)} className="transition hover:scale-110">
-          <Star className={`h-5 w-5 ${value <= rating ? "fill-violet-300 text-violet-300" : "text-white/30"}`} />
+        <button
+          key={value}
+          type="button"
+          onClick={() => onChange(value)}
+          className="rounded-full p-1 transition hover:scale-110"
+        >
+          <Star
+            className={`h-5 w-5 ${
+              value <= rating ? "fill-violet-300 text-violet-300" : "text-white/30"
+            }`}
+          />
         </button>
       ))}
     </div>
   );
 }
 
-function AuthCard({ loginName, setLoginName, handleLogin, handleCreateUser, existingUsers }) {
+function TogglePill({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="relative z-10 mx-auto flex min-h-screen max-w-5xl items-center px-6 py-10 lg:px-10">
-      <div className="grid w-full gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+    <button
+      onClick={onClick}
+      className={`rounded-full border px-4 py-2 text-sm transition ${
+        active
+          ? "border-violet-300/40 bg-violet-400/15 text-white"
+          : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function AuthCard({
+  loginName,
+  setLoginName,
+  handleLogin,
+  handleCreateUser,
+  existingUsers,
+  libraryCount,
+}: {
+  loginName: string;
+  setLoginName: (v: string) => void;
+  handleLogin: () => void;
+  handleCreateUser: () => void;
+  existingUsers: string[];
+  libraryCount: number;
+}) {
+  return (
+    <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl items-center px-6 py-10 lg:px-10">
+      <div className="grid w-full gap-6 lg:grid-cols-[1.08fr_0.92fr]">
         <div className="rounded-[34px] border border-white/10 bg-white/10 p-8 shadow-2xl backdrop-blur-2xl">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-violet-400/30 bg-violet-400/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.3em] text-violet-200">
             <Sparkles className="h-3.5 w-3.5" />
             CineMuse AI
           </div>
-          <h1 className="max-w-2xl text-4xl font-semibold leading-tight tracking-tight text-white lg:text-6xl">
-            Find the perfect movie for your <span className="text-violet-300">mood</span>.
+
+          <h1 className="max-w-3xl text-4xl font-semibold leading-tight tracking-tight text-white lg:text-6xl">
+            One film at a time, picked for your mood and taste.
           </h1>
-          <p className="mt-4 max-w-xl text-base text-white/65 lg:text-lg">
-            Stop scrolling endlessly. Tell us your mood and taste — we’ll pick one perfect movie for you instantly.
+
+          <p className="mt-4 max-w-2xl text-base text-white/65 lg:text-lg">
+            CineMuse learns from what you watched, rated, skipped, and loved across Hollywood,
+            Mollywood, Tollywood, Kollywood, Bollywood, and Sandalwood.
           </p>
+
           <div className="mt-6 flex flex-wrap gap-2">
-            <Badge>One movie at a time</Badge>
-            <Badge>Poster-based setup</Badge>
-            <Badge>Built for Indian audiences too</Badge>
+            <Badge tone="accent">Poster-based onboarding</Badge>
+            <Badge>{libraryCount}+ seeded titles</Badge>
+            <Badge>Balanced across 6 industries</Badge>
+          </div>
+
+          <div className="mt-8 grid gap-3 md:grid-cols-3">
+            {[
+              "No fake watched history for new users",
+              "Recommendations avoid watched and disliked titles",
+              "TMDB posters with graceful fallback",
+            ].map((line) => (
+              <div key={line} className="rounded-2xl border border-white/10 bg-black/25 p-4 text-sm text-white/72">
+                {line}
+              </div>
+            ))}
           </div>
         </div>
 
         <div className="rounded-[34px] border border-white/10 bg-black/30 p-6 shadow-2xl backdrop-blur-2xl">
-          <SectionTitle icon={LogIn} title="Start your movie journey" subtitle="Create a profile and answer a quick watched / not watched poster quiz." />
+          <SectionTitle
+            icon={LogIn}
+            title="Start your movie profile"
+            subtitle="Create a profile, or log back in and continue where you left off."
+          />
+
           <input
             value={loginName}
             onChange={(e) => setLoginName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleLogin();
+            }}
             className="w-full rounded-3xl border border-white/10 bg-white/5 px-4 py-4 text-white outline-none placeholder:text-white/30"
             placeholder="Enter a username, for example Ajwin"
           />
-          <div className="mt-4 flex gap-3">
-            <button onClick={handleLogin} className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-medium text-black">
-              <LogIn className="h-4 w-4" /> Login
+
+          <div className="mt-4 flex flex-wrap gap-3">
+            <button
+              onClick={handleLogin}
+              className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-medium text-black"
+            >
+              <LogIn className="h-4 w-4" />
+              Login
             </button>
-            <button onClick={handleCreateUser} className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-5 py-3 text-sm text-white/85">
-              <Plus className="h-4 w-4" /> Create profile
+            <button
+              onClick={handleCreateUser}
+              className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-5 py-3 text-sm text-white/85"
+            >
+              <Plus className="h-4 w-4" />
+              Create profile
             </button>
           </div>
 
           <div className="mt-6 rounded-3xl border border-white/10 bg-white/5 p-4">
             <p className="text-sm text-white/55">Existing users</p>
             <div className="mt-3 flex flex-wrap gap-2">
-              {existingUsers.length > 0 ? existingUsers.map((name) => (
-                <button key={name} onClick={() => setLoginName(name)} className="rounded-full border border-white/10 bg-black/25 px-3 py-2 text-xs text-white/80">
-                  {name}
-                </button>
-              )) : <p className="text-sm text-white/50">No profiles yet. Create your first one.</p>}
+              {existingUsers.length > 0 ? (
+                existingUsers.map((name) => (
+                  <button
+                    key={name}
+                    onClick={() => setLoginName(name)}
+                    className="rounded-full border border-white/10 bg-black/25 px-3 py-2 text-xs text-white/80"
+                  >
+                    {name}
+                  </button>
+                ))
+              ) : (
+                <p className="text-sm text-white/50">No profiles yet. Create your first one.</p>
+              )}
             </div>
+          </div>
+
+          <div className="mt-6 rounded-3xl border border-violet-300/15 bg-violet-400/10 p-4">
+            <p className="text-sm text-violet-100">
+              Onboarding asks one poster at a time and mixes obvious picks with mid-tier and deeper taste-signal movies.
+            </p>
           </div>
         </div>
       </div>
@@ -323,6 +292,18 @@ function OnboardingCard({
   finishOnboarding,
   watchedEntries,
   loading,
+}: {
+  currentUser: string;
+  currentMovie: any;
+  currentIndex: number;
+  total: number;
+  currentRating: number;
+  setCurrentRating: (n: number) => void;
+  markWatched: (movie: any, rating: number) => void;
+  markNotWatched: (movie: any) => void;
+  finishOnboarding: () => void;
+  watchedEntries: any[];
+  loading: boolean;
 }) {
   return (
     <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl items-center px-6 py-10 lg:px-10">
@@ -330,7 +311,7 @@ function OnboardingCard({
         <SectionTitle
           icon={Clapperboard}
           title={`Build ${currentUser}'s taste profile`}
-          subtitle="We picked a mixed starter set from Hollywood, Mollywood, Tollywood, Kollywood, Bollywood, and Sandalwood. Just tell us if you’ve watched each one."
+          subtitle="A balanced poster-based quiz across all six industries so recommendations feel personal quickly."
         />
 
         {loading ? (
@@ -340,30 +321,58 @@ function OnboardingCard({
         ) : (
           <>
             <div className="mb-5 flex flex-wrap items-center gap-3">
-              <Badge>{Math.min(currentIndex + 1, total)} / {total}</Badge>
+              <Badge tone="accent">
+                {Math.min(currentIndex + 1, total)} / {total}
+              </Badge>
               <Badge>{currentMovie?.industry || "Movie"}</Badge>
-              {(currentMovie?.genres || []).map((genre) => <Badge key={genre}>{genre}</Badge>)}
+              {(currentMovie?.genres || []).map((genre: string) => (
+                <Badge key={genre} tone="soft">
+                  {genre}
+                </Badge>
+              ))}
             </div>
 
             <div className="grid gap-6 lg:grid-cols-[0.78fr_1.22fr]">
               <div className="overflow-hidden rounded-[28px] border border-white/10 bg-white/10 shadow-2xl backdrop-blur-xl">
                 <div className="aspect-[2/3] w-full overflow-hidden bg-black/30">
-                  <img src={currentMovie?.poster} alt={currentMovie?.title} className="h-full w-full object-cover" />
+                  <img
+                    src={currentMovie?.poster || PLACEHOLDER_POSTER}
+                    alt={currentMovie?.title || "Movie poster"}
+                    className="h-full w-full object-cover"
+                  />
                 </div>
               </div>
 
               <div className="rounded-[28px] border border-white/10 bg-white/10 p-6 backdrop-blur-xl">
                 <p className="text-xs uppercase tracking-[0.3em] text-violet-200/80">Onboarding pick</p>
-                <h2 className="mt-2 text-4xl font-semibold tracking-tight text-white lg:text-5xl">{currentMovie?.title || "Movie"}</h2>
-                <p className="mt-3 text-base text-white/60">{currentMovie?.year || ""} {currentMovie?.year ? "•" : ""} {currentMovie?.industry || ""}</p>
+                <h2 className="mt-2 text-4xl font-semibold tracking-tight text-white lg:text-5xl">
+                  {currentMovie?.title || "Movie"}
+                </h2>
+
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-base text-white/60">
+                  <span>{currentMovie?.year || "Unknown year"}</span>
+                  <span>•</span>
+                  <span>{currentMovie?.industry || "Unknown industry"}</span>
+                  <span>•</span>
+                  <span>{currentMovie?.language || "Unknown language"}</span>
+                </div>
+
                 <p className="mt-5 text-sm text-white/55">Have you watched this movie?</p>
 
                 <div className="mt-5 flex flex-wrap gap-3">
-                  <button onClick={() => markWatched(currentMovie, currentRating)} className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-medium text-black">
-                    <Check className="h-4 w-4" /> Watched
+                  <button
+                    onClick={() => markWatched(currentMovie, currentRating)}
+                    className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-medium text-black"
+                  >
+                    <Check className="h-4 w-4" />
+                    Watched
                   </button>
-                  <button onClick={() => markNotWatched(currentMovie)} className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-5 py-3 text-sm text-white/85 hover:bg-white/10">
-                    <X className="h-4 w-4" /> Not watched
+                  <button
+                    onClick={() => markNotWatched(currentMovie)}
+                    className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-5 py-3 text-sm text-white/85 hover:bg-white/10"
+                  >
+                    <X className="h-4 w-4" />
+                    Not watched
                   </button>
                 </div>
 
@@ -375,12 +384,25 @@ function OnboardingCard({
                 </div>
 
                 <div className="mt-8 rounded-3xl border border-white/10 bg-black/20 p-5">
-                  <div className="flex items-center justify-between gap-4">
+                  <p className="text-sm text-white/55">Why this title is here</p>
+                  <p className="mt-2 text-sm leading-6 text-white/78">
+                    This onboarding mix is intentionally not just blockbusters. It includes obvious anchors,
+                    solid mid-tier signals, and deeper picks to map real taste.
+                  </p>
+                </div>
+
+                <div className="mt-8 rounded-3xl border border-white/10 bg-black/20 p-5">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <p className="text-sm text-white/60">Saved taste signals</p>
-                      <p className="mt-1 text-white">{watchedEntries.length} watched movie{watchedEntries.length === 1 ? "" : "s"} captured</p>
+                      <p className="mt-1 text-white">
+                        {watchedEntries.length} watched movie{watchedEntries.length === 1 ? "" : "s"} captured
+                      </p>
                     </div>
-                    <button onClick={finishOnboarding} className="rounded-full border border-violet-300/40 bg-violet-400/15 px-5 py-3 text-sm text-white hover:bg-violet-400/20">
+                    <button
+                      onClick={finishOnboarding}
+                      className="rounded-full border border-violet-300/40 bg-violet-400/15 px-5 py-3 text-sm text-white hover:bg-violet-400/20"
+                    >
                       Finish for now
                     </button>
                   </div>
@@ -394,26 +416,330 @@ function OnboardingCard({
   );
 }
 
+function MemoryPanel({
+  userType,
+  likedGenres,
+  likedIndustries,
+  watchedEntries,
+  reviews,
+  memorySummary,
+}: {
+  userType: string;
+  likedGenres: string[];
+  likedIndustries: string[];
+  watchedEntries: any[];
+  reviews: any[];
+  memorySummary: string;
+}) {
+  return (
+    <div className="rounded-[28px] border border-white/10 bg-white/10 p-6 backdrop-blur-xl">
+      <SectionTitle
+        icon={Brain}
+        title="Profile memory"
+        subtitle="Signals learned from watched films, ratings, industries, and recommendation feedback."
+      />
+
+      <div className="space-y-3 text-sm text-white/78">
+        <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+          <p className="text-white/55">General type</p>
+          <p className="mt-1 font-medium text-white">{userType}</p>
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+          <p className="text-white/55">Liked genres</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {likedGenres.length > 0 ? (
+              likedGenres.map((g) => <Badge key={g}>{g}</Badge>)
+            ) : (
+              <p className="text-white/45">Still learning...</p>
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+          <p className="text-white/55">Liked industries</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {likedIndustries.length > 0 ? (
+              likedIndustries.map((g) => (
+                <Badge key={g} tone="accent">
+                  {g}
+                </Badge>
+              ))
+            ) : (
+              <p className="text-white/45">No strong industry pattern yet.</p>
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+          <p className="text-white/55">Learning summary</p>
+          <p className="mt-1 leading-6">{memorySummary}</p>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { label: "Watched", value: watchedEntries.length },
+            { label: "Reviews", value: reviews.length },
+            { label: "Signals", value: likedGenres.length + likedIndustries.length },
+          ].map((item) => (
+            <div key={item.label} className="rounded-2xl border border-white/10 bg-black/25 p-3">
+              <p className="text-xs uppercase tracking-[0.2em] text-white/45">{item.label}</p>
+              <p className="mt-2 text-lg font-semibold text-white">{item.value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ControlsPanel({
+  mood,
+  setMood,
+  attention,
+  setAttention,
+  subtitleComfort,
+  setSubtitleComfort,
+  chat,
+  setChat,
+}: {
+  mood: string;
+  setMood: (v: string) => void;
+  attention: (typeof defaultProfile.attention);
+  setAttention: (v: any) => void;
+  subtitleComfort: boolean;
+  setSubtitleComfort: (v: boolean) => void;
+  chat: string;
+  setChat: (v: string) => void;
+}) {
+  const moods = ["emotional", "warm", "comfort", "tense", "excited", "curious", "reflective", "dark", "inspired"];
+
+  return (
+    <div className="rounded-[28px] border border-white/10 bg-white/10 p-6 backdrop-blur-xl">
+      <SectionTitle
+        icon={MessageCircle}
+        title="Mood controls"
+        subtitle="Set the current vibe, your attention span, and a short natural-language prompt."
+      />
+
+      <div className="space-y-5">
+        <div>
+          <p className="mb-3 text-sm text-white/60">Mood</p>
+          <div className="flex flex-wrap gap-2">
+            {moods.map((item) => (
+              <TogglePill key={item} active={mood === item} onClick={() => setMood(item)}>
+                {item}
+              </TogglePill>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <p className="mb-3 text-sm text-white/60">Attention span</p>
+          <div className="flex flex-wrap gap-2">
+            {["low", "medium", "high"].map((item) => (
+              <TogglePill key={item} active={attention === item} onClick={() => setAttention(item)}>
+                {item}
+              </TogglePill>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-3xl border border-white/10 bg-black/20 p-4">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm text-white/60">Subtitle comfort</p>
+              <p className="mt-1 text-sm text-white/78">
+                Helps CineMuse lean harder into Malayalam, Tamil, Telugu, Kannada, and Hindi picks.
+              </p>
+            </div>
+            <button
+              onClick={() => setSubtitleComfort(!subtitleComfort)}
+              className={`rounded-full px-4 py-2 text-sm ${
+                subtitleComfort
+                  ? "bg-violet-400/15 text-white ring-1 ring-violet-300/40"
+                  : "bg-white/5 text-white/70 ring-1 ring-white/10"
+              }`}
+            >
+              {subtitleComfort ? "Comfortable" : "Prefer English"}
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <p className="mb-3 text-sm text-white/60">Tell CineMuse what you want</p>
+          <textarea
+            value={chat}
+            onChange={(e) => setChat(e.target.value)}
+            rows={4}
+            className="w-full resize-none rounded-3xl border border-white/10 bg-black/20 px-4 py-4 text-white outline-none placeholder:text-white/30"
+            placeholder="Example: I want something emotional but not depressing."
+          />
+          <div className="mt-3 flex flex-wrap gap-2">
+            {CHAT_PRESETS.map((preset) => (
+              <button
+                key={preset}
+                onClick={() => setChat(preset)}
+                className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/75 hover:bg-white/10"
+              >
+                {preset}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ReviewPanel({
+  feedbackText,
+  setFeedbackText,
+  submitReview,
+}: {
+  feedbackText: string;
+  setFeedbackText: (v: string) => void;
+  submitReview: (reaction: string) => void;
+}) {
+  const actions = [
+    { label: "Loved", icon: Heart, className: "bg-white text-black" },
+    { label: "Too Slow", icon: Clock3, className: "border border-white/15 bg-white/5 text-white/85" },
+    { label: "Not Now", icon: ThumbsDown, className: "border border-white/15 bg-white/5 text-white/85" },
+    { label: "Smart Pick", icon: Brain, className: "border border-violet-300/35 bg-violet-400/15 text-white" },
+  ];
+
+  return (
+    <div className="rounded-[28px] border border-white/10 bg-white/10 p-6 backdrop-blur-xl">
+      <SectionTitle
+        icon={Heart}
+        title="Recommendation feedback"
+        subtitle="Feedback updates future picks, liked genres, industry confidence, and skip logic."
+      />
+
+      <textarea
+        value={feedbackText}
+        onChange={(e) => setFeedbackText(e.target.value)}
+        rows={4}
+        className="w-full resize-none rounded-3xl border border-white/10 bg-black/20 px-4 py-4 text-white outline-none placeholder:text-white/30"
+        placeholder="Optional note: loved the writing, too slow in the middle, want something lighter next..."
+      />
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        {actions.map((item) => (
+          <button
+            key={item.label}
+            onClick={() => submitReview(item.label)}
+            className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-medium transition hover:scale-[1.01] ${item.className}`}
+          >
+            <item.icon className="h-4 w-4" />
+            {item.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function HistoryPanel({
+  watchedEntries,
+  reviews,
+}: {
+  watchedEntries: any[];
+  reviews: any[];
+}) {
+  return (
+    <div className="rounded-[28px] border border-white/10 bg-white/10 p-6 backdrop-blur-xl">
+      <SectionTitle
+        icon={Clapperboard}
+        title="Taste history"
+        subtitle="Your watched entries and recent recommendation feedback stay attached to your profile."
+      />
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div>
+          <p className="mb-3 text-sm text-white/55">Watched and rated</p>
+          <div className="space-y-3">
+            {watchedEntries.length > 0 ? (
+              watchedEntries.slice(-6).reverse().map((entry, index) => (
+                <div key={`${entry.title}-${index}`} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/20 p-3">
+                  <img
+                    src={entry.poster || PLACEHOLDER_POSTER}
+                    alt={entry.title}
+                    className="h-16 w-12 rounded-lg object-cover"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium text-white">{entry.title}</p>
+                    <p className="text-sm text-white/55">{entry.industry}</p>
+                    <div className="mt-2 flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((value) => (
+                        <Star
+                          key={value}
+                          className={`h-3.5 w-3.5 ${
+                            value <= entry.rating ? "fill-violet-300 text-violet-300" : "text-white/20"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-white/55">
+                No watched entries yet.
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <p className="mb-3 text-sm text-white/55">Recent feedback</p>
+          <div className="space-y-3">
+            {reviews.length > 0 ? (
+              reviews.slice(-6).reverse().map((entry, index) => (
+                <div key={`${entry.movie}-${index}`} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-medium text-white">{entry.movie}</p>
+                    <Badge tone="accent">{entry.reaction}</Badge>
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-white/65">{entry.note || "No note"}</p>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-white/55">
+                No recommendation feedback yet.
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function CinematicMovieAIApp() {
   const [loginName, setLoginName] = useState("");
   const [currentUser, setCurrentUser] = useState("");
-  const [users, setUsers] = useState({});
-  const [likedGenres, setLikedGenres] = useState(defaultProfile.likedGenres);
+  const [users, setUsers] = useState<Record<string, any>>({});
+
+  const [likedGenres, setLikedGenres] = useState<string[]>(defaultProfile.likedGenres);
+  const [likedIndustries, setLikedIndustries] = useState<string[]>(defaultProfile.likedIndustries);
   const [subtitleComfort, setSubtitleComfort] = useState(defaultProfile.subtitleComfort);
-  const [attention, setAttention] = useState(defaultProfile.attention);
+  const [attention, setAttention] = useState<"low" | "medium" | "high">(defaultProfile.attention);
   const [mood, setMood] = useState(defaultProfile.mood);
   const [chat, setChat] = useState(defaultProfile.chat);
-  const [watched, setWatched] = useState(defaultProfile.watched);
-  const [disliked, setDisliked] = useState(defaultProfile.disliked);
-  const [reviews, setReviews] = useState(defaultProfile.reviews);
+  const [watched, setWatched] = useState<string[]>(defaultProfile.watched);
+  const [disliked, setDisliked] = useState<string[]>(defaultProfile.disliked);
+  const [reviews, setReviews] = useState<any[]>(defaultProfile.reviews);
   const [feedbackText, setFeedbackText] = useState("");
   const [refreshSeed, setRefreshSeed] = useState(0);
-  const [watchedEntries, setWatchedEntries] = useState([]);
-  const [onboardingComplete, setOnboardingComplete] = useState(false);
-  const [onboardingIndex, setOnboardingIndex] = useState(0);
+  const [watchedEntries, setWatchedEntries] = useState<any[]>(defaultProfile.watchedEntries);
+  const [onboardingComplete, setOnboardingComplete] = useState(defaultProfile.onboardingComplete);
+  const [onboardingIndex, setOnboardingIndex] = useState(defaultProfile.onboardingIndex);
   const [currentOnboardingRating, setCurrentOnboardingRating] = useState(4);
-  const [onboardingMovies, setOnboardingMovies] = useState([]);
-  const [onboardingLoading, setOnboardingLoading] = useState(true);
+
+  const [movieLibrary, setMovieLibrary] = useState<any[]>([]);
+  const [onboardingMovies, setOnboardingMovies] = useState<any[]>([]);
+  const [libraryLoading, setLibraryLoading] = useState(true);
 
   useEffect(() => {
     try {
@@ -429,73 +755,79 @@ export default function CinematicMovieAIApp() {
   }, []);
 
   useEffect(() => {
-    const fetchMovies = async () => {
-      setOnboardingLoading(true);
+    const fetchLibrary = async () => {
+      setLibraryLoading(true);
       try {
-        const results = await Promise.all(
-          TMDB_SEED.map(async (item) => {
-            const res = await fetch(`https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(item.query)}`, {
-              headers: {
-                Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_BEARER_TOKEN}`,
-                "Content-Type": "application/json",
-              },
-            });
-            const data = await res.json();
-            const movie = data.results?.[0];
-            if (!movie) return null;
+        const token = process.env.NEXT_PUBLIC_TMDB_BEARER_TOKEN;
+        const results = await fetchMovieLibraryFromTMDB(token);
 
-            return {
-              title: movie.title,
-              year: movie.release_date?.split("-")[0] || "",
-              poster: movie.poster_path ? `${TMDB_IMAGE_BASE}${movie.poster_path}` : "https://placehold.co/600x900",
-              genres: item.genres,
-              industry: item.industry,
-            };
-          })
-        );
+        setMovieLibrary(results);
 
-        const cleaned = results.filter(Boolean);
-        setOnboardingMovies(cleaned);
-      } catch (err) {
-        console.error("TMDB fetch failed", err);
-        setOnboardingMovies(
-          TMDB_SEED.map((item) => ({
-            title: item.query,
-            year: "",
-            poster: "https://placehold.co/600x900",
-            genres: item.genres,
-            industry: item.industry,
-          }))
-        );
+        const existingQueue =
+          currentUser && users[currentUser]?.onboardingQueue?.length
+            ? users[currentUser].onboardingQueue
+            : [];
+
+        if (existingQueue.length > 0) {
+          const queueMovies = existingQueue
+            .map((title: string) => results.find((movie) => movie.title === title))
+            .filter(Boolean);
+          setOnboardingMovies(queueMovies.length ? queueMovies : pickBalancedOnboarding(results, 18));
+        } else {
+          setOnboardingMovies(pickBalancedOnboarding(results, 18));
+        }
+      } catch (error) {
+        console.error("TMDB library fetch failed", error);
+        const fallback = buildFallbackLibrary();
+        setMovieLibrary(fallback);
+        setOnboardingMovies(pickBalancedOnboarding(fallback, 18));
       } finally {
-        setOnboardingLoading(false);
+        setLibraryLoading(false);
       }
     };
 
-    fetchMovies();
+    fetchLibrary();
   }, []);
 
-  function loadUser(name, userMap = users) {
+  function loadUser(name: string, userMap = users) {
     const data = userMap[name] || defaultProfile;
+
     setCurrentUser(name);
-    setLikedGenres(data.likedGenres || defaultProfile.likedGenres);
-    setSubtitleComfort(data.subtitleComfort ?? defaultProfile.subtitleComfort);
-    setAttention(data.attention || defaultProfile.attention);
-    setMood(data.mood || defaultProfile.mood);
-    setChat(data.chat || defaultProfile.chat);
-    setWatched(data.watched || defaultProfile.watched);
-    setDisliked(data.disliked || defaultProfile.disliked);
-    setReviews(data.reviews || defaultProfile.reviews);
+    setLikedGenres(data.likedGenres || []);
+    setLikedIndustries(data.likedIndustries || []);
+    setSubtitleComfort(data.subtitleComfort ?? true);
+    setAttention(data.attention || "low");
+    setMood(data.mood || "emotional");
+    setChat(data.chat || CHAT_PRESETS[0]);
+    setWatched(data.watched || []);
+    setDisliked(data.disliked || []);
+    setReviews(data.reviews || []);
     setWatchedEntries(data.watchedEntries || []);
-    setOnboardingComplete(data.onboardingComplete || false);
+    setOnboardingComplete(Boolean(data.onboardingComplete));
     setOnboardingIndex(data.onboardingIndex || 0);
+
+    if (movieLibrary.length) {
+      const queueTitles = data.onboardingQueue || [];
+      if (queueTitles.length > 0) {
+        const queueMovies = queueTitles
+          .map((title: string) => movieLibrary.find((movie) => movie.title === title))
+          .filter(Boolean);
+
+        setOnboardingMovies(queueMovies.length ? queueMovies : pickBalancedOnboarding(movieLibrary, 18));
+      } else {
+        setOnboardingMovies(pickBalancedOnboarding(movieLibrary, 18));
+      }
+    }
+
     storage.setCurrentUser(name);
   }
 
   useEffect(() => {
     if (!currentUser) return;
+
     const updatedUser = {
       likedGenres,
+      likedIndustries,
       subtitleComfort,
       attention,
       mood,
@@ -506,29 +838,73 @@ export default function CinematicMovieAIApp() {
       watchedEntries,
       onboardingComplete,
       onboardingIndex,
+      onboardingQueue: onboardingMovies.map((movie) => movie.title),
     };
+
     const nextUsers = { ...users, [currentUser]: updatedUser };
     setUsers(nextUsers);
     storage.saveUsers(nextUsers);
-  }, [currentUser, likedGenres, subtitleComfort, attention, mood, chat, watched, disliked, reviews, watchedEntries, onboardingComplete, onboardingIndex]);
+  }, [
+    currentUser,
+    likedGenres,
+    likedIndustries,
+    subtitleComfort,
+    attention,
+    mood,
+    chat,
+    watched,
+    disliked,
+    reviews,
+    watchedEntries,
+    onboardingComplete,
+    onboardingIndex,
+    onboardingMovies,
+  ]);
 
-  const profile = { likedGenres, subtitleComfort, attention };
+  const userType = useMemo(
+    () => inferUserType(attention, likedGenres, likedIndustries),
+    [attention, likedGenres, likedIndustries]
+  );
+
+  const currentOnboardingMovie =
+    onboardingMovies[onboardingIndex] || onboardingMovies[onboardingMovies.length - 1] || null;
 
   const topMovie = useMemo(() => {
-    return [...MOVIES]
-      .map((m) => ({ ...m, score: scoreMovie(m, profile, mood, chat, watched, disliked) + refreshSeed * Math.random() }))
-      .sort((a, b) => b.score - a.score)[0];
-  }, [likedGenres, subtitleComfort, attention, mood, chat, watched, disliked, refreshSeed]);
+    if (!movieLibrary.length) return null;
 
-  const userType = useMemo(() => {
-    if (attention === "low" && likedGenres.includes("Thriller")) return "Low-attention thriller seeker";
-    if (likedGenres.includes("Drama") && subtitleComfort) return "Emotion-first global cinema explorer";
-    if (likedGenres.includes("Family")) return "Comfort-watch mood viewer";
-    return "Adaptive mainstream explorer";
-  }, [attention, likedGenres, subtitleComfort]);
+    const profile = { likedGenres, subtitleComfort, attention };
+
+    const candidate = [...movieLibrary]
+      .map((movie) => ({
+        ...movie,
+        score: scoreMovie(movie, profile, mood, chat, watched, disliked, likedIndustries, reviews),
+      }))
+      .sort((a, b) => b.score - a.score)[0];
+
+    if (!candidate) return null;
+
+    return {
+      ...candidate,
+      why: buildReason(candidate, mood, chat, likedIndustries, likedGenres),
+    };
+  }, [
+    movieLibrary,
+    likedGenres,
+    subtitleComfort,
+    attention,
+    mood,
+    chat,
+    watched,
+    disliked,
+    likedIndustries,
+    reviews,
+    refreshSeed,
+  ]);
 
   const memorySummary = useMemo(() => {
-    if (reviews.length === 0 && watchedEntries.length === 0) return "Memory is still forming. Mark watched films in onboarding and give feedback to sharpen the engine.";
+    if (reviews.length === 0 && watchedEntries.length === 0) {
+      return "Memory is still forming. Mark watched films during onboarding and rate what you loved to sharpen the engine.";
+    }
     if (reviews.length > 0) {
       const last = reviews[reviews.length - 1];
       return `Last learning update: you ${last.reaction.toLowerCase()} "${last.movie}" because "${last.note}".`;
@@ -537,96 +913,35 @@ export default function CinematicMovieAIApp() {
     return `You rated "${favoriteEntry.title}" from ${favoriteEntry.industry} at ${favoriteEntry.rating} stars.`;
   }, [reviews, watchedEntries]);
 
-  const currentOnboardingMovie = onboardingMovies[onboardingIndex] || onboardingMovies[onboardingMovies.length - 1] || {
-    title: "Loading",
-    year: "",
-    poster: "https://placehold.co/600x900",
-    genres: [],
-    industry: "Movie",
-  };
-
-  const submitReview = (reaction) => {
-    if (!topMovie) return;
-    const entry = {
-      movie: topMovie.title,
-      reaction,
-      note: feedbackText || "no extra note",
-      time: new Date().toLocaleString(),
-    };
-    setReviews((prev) => [...prev, entry]);
-    if (reaction === "Loved" || reaction === "Smart Pick") {
-      setLikedGenres((prev) => Array.from(new Set([...prev, ...topMovie.genres])));
-      setWatched((prev) => Array.from(new Set([...prev, topMovie.title])));
-    }
-    if (reaction === "Too Slow" || reaction === "Not Now") {
-      setDisliked((prev) => Array.from(new Set([...prev, topMovie.title])));
-    }
-    setFeedbackText("");
-  };
-
   const handleCreateUser = () => {
     const name = loginName.trim();
     if (!name) return;
+    if (users[name]) {
+      loadUser(name, users);
+      return;
+    }
+
+    const queue = movieLibrary.length ? pickBalancedOnboarding(movieLibrary, 18) : [];
     const nextUsers = {
       ...users,
       [name]: {
         ...defaultProfile,
         watched: [],
+        disliked: [],
+        reviews: [],
         watchedEntries: [],
+        likedGenres: [],
+        likedIndustries: [],
         onboardingComplete: false,
         onboardingIndex: 0,
+        onboardingQueue: queue.map((movie) => movie.title),
       },
     };
+
     setUsers(nextUsers);
     storage.saveUsers(nextUsers);
+    setOnboardingMovies(queue);
     loadUser(name, nextUsers);
-  };
-
-  const moveToNextOnboardingMovie = () => {
-    if (onboardingIndex < onboardingMovies.length - 1) {
-      setOnboardingIndex((prev) => prev + 1);
-      setCurrentOnboardingRating(4);
-    } else {
-      setOnboardingComplete(true);
-    }
-  };
-
-  const markWatched = (movie, rating) => {
-    if (!movie?.title) return;
-    const newEntry = {
-      title: movie.title,
-      industry: movie.industry,
-      rating,
-      genres: movie.genres,
-    };
-    setWatchedEntries((prev) => [...prev, newEntry]);
-    setWatched((prev) => Array.from(new Set([...prev, movie.title])));
-    if (rating >= 4) {
-      setLikedGenres((prev) => Array.from(new Set([...prev, ...movie.genres])));
-    }
-    moveToNextOnboardingMovie();
-  };
-
-  const markNotWatched = (movie) => {
-    if (!movie?.title) return;
-    setDisliked((prev) => Array.from(new Set([...prev, movie.title])));
-    moveToNextOnboardingMovie();
-  };
-
-  const finishOnboarding = () => {
-    setOnboardingComplete(true);
-  };
-
-  const watchThisTonight = () => {
-    if (!topMovie) return;
-    setWatched((prev) => Array.from(new Set([...prev, topMovie.title])));
-    setFeedbackText(`I watched ${topMovie.title} and `);
-  };
-
-  const refineRecommendation = () => {
-    if (!topMovie) return;
-    setDisliked((prev) => Array.from(new Set([...prev, topMovie.title])));
-    setRefreshSeed((prev) => prev + 1);
   };
 
   const handleLogin = () => {
@@ -640,12 +955,110 @@ export default function CinematicMovieAIApp() {
     storage.clearCurrentUser();
   };
 
+  const moveToNextOnboardingMovie = () => {
+    if (onboardingIndex < onboardingMovies.length - 1) {
+      setOnboardingIndex((prev) => prev + 1);
+      setCurrentOnboardingRating(4);
+    } else {
+      setOnboardingComplete(true);
+    }
+  };
+
+  const markWatched = (movie: any, rating: number) => {
+    if (!movie?.title) return;
+
+    const alreadySaved = watchedEntries.some((entry) => entry.title === movie.title);
+    const nextEntry = {
+      title: movie.title,
+      industry: movie.industry,
+      rating,
+      genres: movie.genres,
+      poster: movie.poster,
+    };
+
+    if (!alreadySaved) {
+      setWatchedEntries((prev) => [...prev, nextEntry]);
+    }
+
+    setWatched((prev) => Array.from(new Set([...prev, movie.title])));
+    setLikedIndustries((prev) => Array.from(new Set([...prev, movie.industry])));
+
+    if (rating >= 4) {
+      setLikedGenres((prev) => Array.from(new Set([...prev, ...movie.genres])));
+    }
+
+    moveToNextOnboardingMovie();
+  };
+
+  const markNotWatched = (movie: any) => {
+    if (!movie?.title) return;
+    moveToNextOnboardingMovie();
+  };
+
+  const finishOnboarding = () => {
+    setOnboardingComplete(true);
+  };
+
+  const submitReview = (reaction: string) => {
+    if (!topMovie) return;
+
+    const entry = {
+      movie: topMovie.title,
+      reaction,
+      note: feedbackText || "no extra note",
+      time: new Date().toLocaleString(),
+    };
+
+    setReviews((prev) => [...prev, entry]);
+
+    if (reaction === "Loved" || reaction === "Smart Pick") {
+      setLikedGenres((prev) => Array.from(new Set([...prev, ...topMovie.genres])));
+      setLikedIndustries((prev) => Array.from(new Set([...prev, topMovie.industry])));
+      setWatched((prev) => Array.from(new Set([...prev, topMovie.title])));
+    }
+
+    if (reaction === "Too Slow" || reaction === "Not Now") {
+      setDisliked((prev) => Array.from(new Set([...prev, topMovie.title])));
+    }
+
+    setFeedbackText("");
+    setRefreshSeed((prev) => prev + 1);
+  };
+
+  const watchThisTonight = () => {
+    if (!topMovie) return;
+    setWatched((prev) => Array.from(new Set([...prev, topMovie.title])));
+    setFeedbackText(`I watched ${topMovie.title} and `);
+    setRefreshSeed((prev) => prev + 1);
+  };
+
+  const refineRecommendation = () => {
+    if (!topMovie) return;
+    setDisliked((prev) => Array.from(new Set([...prev, topMovie.title])));
+    setRefreshSeed((prev) => prev + 1);
+  };
+
+  const reshuffleOnboarding = () => {
+    if (!movieLibrary.length) return;
+    const fresh = pickBalancedOnboarding(movieLibrary, 18);
+    setOnboardingMovies(fresh);
+    setOnboardingIndex(0);
+  };
+
   if (!currentUser) {
     return (
       <div className="min-h-screen overflow-hidden bg-[#07070b] text-white">
         <div className="fixed inset-0 bg-[url('https://images.unsplash.com/photo-1517602302552-471fe67acf66?auto=format&fit=crop&w=1600&q=80')] bg-cover bg-center opacity-20" />
-        <div className="fixed inset-0 bg-[radial-gradient(circle_at_top,rgba(139,92,246,0.25),transparent_35%),linear-gradient(to_bottom,rgba(7,7,11,0.35),rgba(7,7,11,0.9)_45%,rgba(7,7,11,1))]" />
-        <AuthCard loginName={loginName} setLoginName={setLoginName} handleLogin={handleLogin} handleCreateUser={handleCreateUser} existingUsers={Object.keys(users)} />
+        <div className="fixed inset-0 bg-[radial-gradient(circle_at_top,rgba(139,92,246,0.22),transparent_35%),linear-gradient(to_bottom,rgba(7,7,11,0.32),rgba(7,7,11,0.9)_45%,rgba(7,7,11,1))]" />
+
+        <AuthCard
+          loginName={loginName}
+          setLoginName={setLoginName}
+          handleLogin={handleLogin}
+          handleCreateUser={handleCreateUser}
+          existingUsers={Object.keys(users)}
+          libraryCount={MOVIE_LIBRARY_SEED.length}
+        />
       </div>
     );
   }
@@ -654,19 +1067,39 @@ export default function CinematicMovieAIApp() {
     return (
       <div className="min-h-screen overflow-hidden bg-[#07070b] text-white">
         <div className="fixed inset-0 bg-[url('https://images.unsplash.com/photo-1517602302552-471fe67acf66?auto=format&fit=crop&w=1600&q=80')] bg-cover bg-center opacity-15" />
-        <div className="fixed inset-0 bg-[radial-gradient(circle_at_top,rgba(139,92,246,0.25),transparent_35%),linear-gradient(to_bottom,rgba(7,7,11,0.35),rgba(7,7,11,0.92)_45%,rgba(7,7,11,1))]" />
+        <div className="fixed inset-0 bg-[radial-gradient(circle_at_top,rgba(139,92,246,0.22),transparent_35%),linear-gradient(to_bottom,rgba(7,7,11,0.35),rgba(7,7,11,0.92)_45%,rgba(7,7,11,1))]" />
+
+        <div className="relative z-10 mx-auto max-w-6xl px-6 pt-6 lg:px-10">
+          <div className="flex flex-wrap justify-end gap-3">
+            <button
+              onClick={reshuffleOnboarding}
+              className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-3 text-sm text-white/85 hover:bg-white/10"
+            >
+              <RefreshCcw className="h-4 w-4" />
+              New onboarding mix
+            </button>
+            <button
+              onClick={logout}
+              className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-3 text-sm text-white/85 hover:bg-white/10"
+            >
+              <LogOut className="h-4 w-4" />
+              Log out
+            </button>
+          </div>
+        </div>
+
         <OnboardingCard
           currentUser={currentUser}
           currentMovie={currentOnboardingMovie}
           currentIndex={onboardingIndex}
-          total={onboardingMovies.length || TMDB_SEED.length}
+          total={onboardingMovies.length || 18}
           currentRating={currentOnboardingRating}
           setCurrentRating={setCurrentOnboardingRating}
           markWatched={markWatched}
           markNotWatched={markNotWatched}
           finishOnboarding={finishOnboarding}
           watchedEntries={watchedEntries}
-          loading={onboardingLoading}
+          loading={libraryLoading}
         />
       </div>
     );
@@ -674,22 +1107,34 @@ export default function CinematicMovieAIApp() {
 
   return (
     <div className="min-h-screen overflow-hidden bg-[#07070b] text-white">
-      <div className="fixed inset-0 bg-cover bg-center opacity-25" style={{ backgroundImage: `url(${topMovie?.backdrop})` }} />
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_top,rgba(139,92,246,0.25),transparent_35%),linear-gradient(to_bottom,rgba(7,7,11,0.35),rgba(7,7,11,0.88)_45%,rgba(7,7,11,1))]" />
+      <div
+        className="fixed inset-0 bg-cover bg-center opacity-25"
+        style={{
+          backgroundImage: `url(${topMovie?.backdrop || PLACEHOLDER_BACKDROP})`,
+        }}
+      />
+      <div className="fixed inset-0 bg-[radial-gradient(circle_at_top,rgba(139,92,246,0.22),transparent_35%),linear-gradient(to_bottom,rgba(7,7,11,0.32),rgba(7,7,11,0.88)_45%,rgba(7,7,11,1))]" />
 
       <div className="relative z-10 mx-auto max-w-7xl px-6 py-8 lg:px-10">
-        <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="mb-8 flex flex-col gap-5 rounded-[30px] border border-white/10 bg-white/10 p-6 shadow-2xl backdrop-blur-2xl">
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8 flex flex-col gap-5 rounded-[30px] border border-white/10 bg-white/10 p-6 shadow-2xl backdrop-blur-2xl"
+        >
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-violet-400/30 bg-violet-400/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.3em] text-violet-200">
                 <Sparkles className="h-3.5 w-3.5" />
                 CineMuse AI
               </div>
+
               <h1 className="max-w-3xl text-4xl font-semibold leading-tight tracking-tight text-white lg:text-6xl">
-                One perfect movie. Chosen for your <span className="text-violet-300">mood</span>, taste, and attention.
+                One perfect movie. Chosen for your mood, taste, and attention.
               </h1>
+
               <p className="mt-4 max-w-2xl text-base text-white/65 lg:text-lg">
-                A cinematic AI movie companion that studies what you watched, what you loved, how you react, and what you want tonight.
+                A cinematic recommendation companion that learns from watched films, star ratings,
+                industries, and feedback instead of throwing generic lists at you.
               </p>
             </div>
 
@@ -698,8 +1143,13 @@ export default function CinematicMovieAIApp() {
                 <User className="h-4 w-4 text-violet-300" />
                 {currentUser}
               </div>
-              <button onClick={logout} className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-3 text-sm text-white/85 hover:bg-white/10">
-                <LogOut className="h-4 w-4" /> Log out
+
+              <button
+                onClick={logout}
+                className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-3 text-sm text-white/85 hover:bg-white/10"
+              >
+                <LogOut className="h-4 w-4" />
+                Log out
               </button>
             </div>
           </div>
@@ -721,27 +1171,52 @@ export default function CinematicMovieAIApp() {
 
         <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="space-y-6">
-            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="overflow-hidden rounded-[32px] border border-white/10 bg-white/10 shadow-2xl backdrop-blur-xl">
-              <div className="relative min-h-[540px] p-6 lg:p-8">
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 }}
+              className="overflow-hidden rounded-[32px] border border-white/10 bg-white/10 shadow-2xl backdrop-blur-xl"
+            >
+              <div className="relative min-h-[560px] p-6 lg:p-8">
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
-                <div className="absolute right-0 top-0 h-80 w-2/3 bg-cover bg-center opacity-35" style={{ backgroundImage: `url(${topMovie?.backdrop})` }} />
+                <div
+                  className="absolute right-0 top-0 h-80 w-2/3 bg-cover bg-center opacity-35"
+                  style={{
+                    backgroundImage: `url(${topMovie?.poster || topMovie?.backdrop || PLACEHOLDER_POSTER})`,
+                  }}
+                />
                 <div className="relative z-10 flex h-full flex-col justify-between">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <div className="mb-3 flex flex-wrap gap-2">
-                        <Badge>Today’s pick</Badge>
-                        <Badge>Confidence {Math.min(98, Math.round(topMovie?.score * 2.5 || 80))}%</Badge>
-                        <Badge>Why this now?</Badge>
+                        <Badge tone="accent">Today’s pick</Badge>
+                        <Badge>Library: {movieLibrary.length}</Badge>
+                        <Badge>One at a time</Badge>
                       </div>
-                      <h2 className="max-w-2xl text-4xl font-semibold tracking-tight lg:text-6xl">{topMovie?.title}</h2>
+
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key={topMovie?.title || "loading"}
+                          initial={{ opacity: 0, y: 12 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -12 }}
+                          transition={{ duration: 0.22 }}
+                        >
+                          <h2 className="max-w-2xl text-4xl font-semibold tracking-tight lg:text-6xl">
+                            {topMovie?.title || "Loading..."}
+                          </h2>
+                        </motion.div>
+                      </AnimatePresence>
+
                       <div className="mt-4 flex flex-wrap gap-2 text-sm text-white/75">
-                        <Badge>{topMovie?.year}</Badge>
-                        <Badge>{topMovie?.country}</Badge>
-                        <Badge>{topMovie?.language}</Badge>
-                        <Badge>{topMovie?.runtime} min</Badge>
-                        <Badge>{topMovie?.pace}</Badge>
+                        <Badge>{topMovie?.year || "—"}</Badge>
+                        <Badge>{topMovie?.industry || "Movie"}</Badge>
+                        <Badge>{topMovie?.language || "—"}</Badge>
+                        <Badge>{topMovie?.runtime || 120} min</Badge>
+                        <Badge>{topMovie?.pace || "medium"}</Badge>
                       </div>
                     </div>
+
                     <div className="hidden rounded-2xl border border-white/10 bg-black/35 p-3 text-white/75 lg:block">
                       <Film className="h-5 w-5 text-violet-300" />
                     </div>
@@ -749,19 +1224,39 @@ export default function CinematicMovieAIApp() {
 
                   <div>
                     <div className="mt-8 flex flex-wrap gap-2">
-                      {topMovie?.genres.map((g) => <Badge key={g}>{g}</Badge>)}
+                      {(topMovie?.genres || []).map((genre: string) => (
+                        <Badge key={genre}>{genre}</Badge>
+                      ))}
                     </div>
-                    <p className="mt-5 max-w-2xl text-base leading-7 text-white/78 lg:text-lg">{topMovie?.description}</p>
+
+                    <p className="mt-5 max-w-2xl text-base leading-7 text-white/78 lg:text-lg">
+                      {topMovie?.description || "Loading recommendation..."}
+                    </p>
+
                     <div className="mt-6 rounded-3xl border border-violet-300/20 bg-violet-400/10 p-5 backdrop-blur-lg">
-                      <p className="text-xs uppercase tracking-[0.3em] text-violet-200/80">Recommendation reasoning</p>
-                      <p className="mt-2 text-sm leading-6 text-white/85">{topMovie?.why}</p>
+                      <p className="text-xs uppercase tracking-[0.3em] text-violet-200/80">
+                        Recommendation reasoning
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-white/85">
+                        {topMovie?.why || "We are matching this from your current taste signals."}
+                      </p>
                     </div>
+
                     <div className="mt-6 flex flex-wrap gap-3">
-                      <button onClick={watchThisTonight} className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-medium text-black transition hover:scale-[1.02]">
-                        <Play className="h-4 w-4" /> Watch this tonight
+                      <button
+                        onClick={watchThisTonight}
+                        className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-medium text-black transition hover:scale-[1.02]"
+                      >
+                        <Play className="h-4 w-4" />
+                        Watch this tonight
                       </button>
-                      <button onClick={refineRecommendation} className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-5 py-3 text-sm text-white/85 transition hover:bg-white/10">
-                        <RefreshCcw className="h-4 w-4" /> Not this, refine mood
+
+                      <button
+                        onClick={refineRecommendation}
+                        className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-5 py-3 text-sm text-white/85 transition hover:bg-white/10"
+                      >
+                        <RefreshCcw className="h-4 w-4" />
+                        Not this, refine mood
                       </button>
                     </div>
                   </div>
@@ -769,145 +1264,147 @@ export default function CinematicMovieAIApp() {
               </div>
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }} className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-[28px] border border-white/10 bg-white/10 p-6 backdrop-blur-xl">
-                <SectionTitle icon={Brain} title="Profile memory" subtitle="Signals learned from watched movies, ratings, and feedback." />
-                <div className="space-y-3 text-sm text-white/78">
-                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <p className="text-white/55">General type</p>
-                    <p className="mt-1 font-medium text-white">{userType}</p>
-                  </div>
-                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <p className="text-white/55">Taste signals</p>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {watchedEntries.slice(0, 6).map((entry, idx) => (
-                        <Badge key={`${entry.title}-${idx}`}>{entry.title}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <p className="text-white/55">Learning summary</p>
-                    <p className="mt-1 leading-6">{memorySummary}</p>
-                  </div>
-                </div>
-              </div>
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.12 }}
+              className="grid gap-6 lg:grid-cols-2"
+            >
+              <MemoryPanel
+                userType={userType}
+                likedGenres={likedGenres}
+                likedIndustries={likedIndustries}
+                watchedEntries={watchedEntries}
+                reviews={reviews}
+                memorySummary={memorySummary}
+              />
+              <ControlsPanel
+                mood={mood}
+                setMood={setMood}
+                attention={attention}
+                setAttention={setAttention}
+                subtitleComfort={subtitleComfort}
+                setSubtitleComfort={setSubtitleComfort}
+                chat={chat}
+                setChat={setChat}
+              />
+            </motion.div>
 
-              <div className="rounded-[28px] border border-white/10 bg-white/10 p-6 backdrop-blur-xl">
-                <SectionTitle icon={MessageCircle} title="Live recommendation chat" subtitle="Refine what you want right now" />
-                <textarea value={chat} onChange={(e) => setChat(e.target.value)} className="min-h-[130px] w-full rounded-3xl border border-white/10 bg-black/25 p-4 text-sm text-white outline-none placeholder:text-white/30" placeholder="Tell the AI what you want to watch tonight..." />
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {CHAT_PRESETS.map((item) => (
-                    <button key={item} onClick={() => setChat(item)} className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/70 hover:bg-white/10">{item}</button>
-                  ))}
-                </div>
-                <div className="mt-5 grid grid-cols-2 gap-3">
-                  {[ ["emotional", Heart], ["comfort", Coffee], ["intense", Zap], ["curious", Sparkles] ].map(([m, Icon]) => (
-                    <button key={m} onClick={() => setMood(m)} className={`rounded-2xl border px-4 py-3 text-left transition ${mood === m ? "border-violet-300/50 bg-violet-400/15" : "border-white/10 bg-black/20 hover:bg-white/5"}`}>
-                      <Icon className="mb-2 h-4 w-4 text-violet-300" />
-                      <p className="text-sm capitalize text-white/85">{m}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.18 }}
+            >
+              <HistoryPanel watchedEntries={watchedEntries} reviews={reviews} />
             </motion.div>
           </div>
 
           <div className="space-y-6">
-            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }} className="rounded-[28px] border border-white/10 bg-white/10 p-6 backdrop-blur-xl">
-              <SectionTitle icon={Sparkles} title="Your profile" subtitle="Fine-tune your taste so every recommendation feels more personal." />
-              <div className="space-y-5 text-sm">
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <p className="text-white/55">Active profile</p>
-                  <div className="mt-2 flex items-center gap-2 text-white">
-                    <User className="h-4 w-4 text-violet-300" />
-                    <span className="font-medium">{currentUser}</span>
-                  </div>
-                </div>
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.08 }}
+              className="rounded-[28px] border border-white/10 bg-white/10 p-6 backdrop-blur-xl"
+            >
+              <SectionTitle
+                icon={Globe2}
+                title="Industry pulse"
+                subtitle="The app stays aware of cross-industry taste instead of defaulting to only one market."
+              />
 
-                <div>
-                  <label className="mb-2 block text-white/60">Attention span</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[ ["low", "Need easy picks"], ["medium", "Balanced"], ["high", "Can handle depth"] ].map(([val, label]) => (
-                      <button key={val} onClick={() => setAttention(val)} className={`rounded-2xl border p-3 text-left ${attention === val ? "border-violet-300/50 bg-violet-400/15" : "border-white/10 bg-black/20"}`}>
-                        <p className="font-medium capitalize text-white">{val}</p>
-                        <p className="mt-1 text-xs text-white/55">{label}</p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {INDUSTRIES.map((industry) => {
+                  const active = likedIndustries.includes(industry);
+                  const watchedCount = watchedEntries.filter((entry) => entry.industry === industry).length;
 
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <p className="text-white/55">Watched from major industries</p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {INDUSTRIES.map((industry) => {
-                      const count = watchedEntries.filter((entry) => entry.industry === industry).length;
-                      return <Badge key={industry}>{industry}: {count}</Badge>;
-                    })}
-                  </div>
-                </div>
-
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-white">Subtitle comfort</p>
-                      <p className="mt-1 text-xs text-white/55">Helps the engine decide whether to recommend global cinema</p>
-                    </div>
-                    <button onClick={() => setSubtitleComfort((v) => !v)} className={`rounded-full px-4 py-2 text-xs ${subtitleComfort ? "bg-violet-400/20 text-violet-200" : "bg-white/10 text-white/70"}`}>
-                      {subtitleComfort ? "Comfortable" : "Prefer local language"}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <p className="text-white/55">Previously watched</p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {watched.length > 0 ? watched.map((m) => <Badge key={m}>{m}</Badge>) : <p className="text-sm text-white/45">No movies added yet.</p>}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24 }} className="rounded-[28px] border border-white/10 bg-white/10 p-6 backdrop-blur-xl">
-              <SectionTitle icon={Star} title="After watching" subtitle="Your reaction updates memory and future recommendations" />
-              <textarea value={feedbackText} onChange={(e) => setFeedbackText(e.target.value)} className="min-h-[92px] w-full rounded-3xl border border-white/10 bg-black/25 p-4 text-sm text-white outline-none placeholder:text-white/30" placeholder={`Tell the AI what you felt about ${topMovie?.title}...`} />
-              <div className="mt-4 flex flex-wrap gap-2">
-                {[ ["Loved", Heart], ["Too Slow", Clock3], ["Not Now", ThumbsDown], ["Smart Pick", Sparkles] ].map(([label, Icon]) => (
-                  <button key={label} onClick={() => submitReview(label)} className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-white/85 hover:bg-white/10">
-                    <Icon className="h-4 w-4 text-violet-300" /> {label}
-                  </button>
-                ))}
-              </div>
-
-              <div className="mt-5 space-y-3">
-                <AnimatePresence>
-                  {reviews.slice().reverse().slice(0, 3).map((r, idx) => (
-                    <motion.div key={`${r.movie}-${r.time}-${idx}`} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                  return (
+                    <div
+                      key={industry}
+                      className={`rounded-2xl border p-4 ${
+                        active
+                          ? "border-violet-300/30 bg-violet-400/10"
+                          : "border-white/10 bg-black/20"
+                      }`}
+                    >
                       <div className="flex items-center justify-between gap-3">
-                        <p className="font-medium text-white">{r.movie}</p>
-                        <Badge>{r.reaction}</Badge>
+                        <p className="font-medium text-white">{industry}</p>
+                        <Badge tone={active ? "accent" : "soft"}>{watchedCount} watched</Badge>
                       </div>
-                      <p className="mt-2 text-sm leading-6 text-white/68">{r.note}</p>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
+                      <p className="mt-2 text-sm text-white/60">
+                        {active
+                          ? "This industry is influencing recommendations now."
+                          : "Still learning your response to this industry."}
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="rounded-[28px] border border-white/10 bg-gradient-to-br from-violet-400/15 to-white/5 p-6 backdrop-blur-xl">
-              <SectionTitle icon={Globe2} title="Why CineMuse" subtitle="A more personal way to discover what to watch next." />
-              <div className="space-y-3 text-sm text-white/75">
-                {[
-                  "Built around your personal taste and mood",
-                  "Asks what you’ve watched from industries your audience follows",
-                  "One movie at a time instead of endless lists",
-                  "Mood, attention, and taste combined in one recommendation loop",
-                  "Review memory updates after every watch",
-                ].map((point) => (
-                  <div key={point} className="flex items-start gap-3 rounded-2xl border border-white/10 bg-black/20 p-3">
-                    <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-violet-300" />
-                    <p>{point}</p>
-                  </div>
-                ))}
+            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14 }}>
+              <ReviewPanel
+                feedbackText={feedbackText}
+                setFeedbackText={setFeedbackText}
+                submitReview={submitReview}
+              />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="rounded-[28px] border border-white/10 bg-white/10 p-6 backdrop-blur-xl"
+            >
+              <SectionTitle
+                icon={Zap}
+                title="Quick actions"
+                subtitle="Useful controls for keeping the recommendation loop feeling fresh."
+              />
+
+              <div className="space-y-3">
+                <button
+                  onClick={() => setOnboardingComplete(false)}
+                  className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-black/20 px-4 py-4 text-left text-white/82 transition hover:bg-black/30"
+                >
+                  <span>
+                    <span className="block font-medium text-white">Revisit onboarding</span>
+                    <span className="mt-1 block text-sm text-white/55">
+                      Ask more poster questions to strengthen taste signals.
+                    </span>
+                  </span>
+                  <ChevronRight className="h-4 w-4 text-violet-300" />
+                </button>
+
+                <button
+                  onClick={() => {
+                    if (!movieLibrary.length) return;
+                    setOnboardingMovies(pickBalancedOnboarding(movieLibrary, 18));
+                    setOnboardingIndex(0);
+                    setOnboardingComplete(false);
+                  }}
+                  className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-black/20 px-4 py-4 text-left text-white/82 transition hover:bg-black/30"
+                >
+                  <span>
+                    <span className="block font-medium text-white">Fresh onboarding mix</span>
+                    <span className="mt-1 block text-sm text-white/55">
+                      New balanced set across top-tier, mid-tier, and deeper picks.
+                    </span>
+                  </span>
+                  <RefreshCcw className="h-4 w-4 text-violet-300" />
+                </button>
+
+                <button
+                  onClick={() => setRefreshSeed((prev) => prev + 1)}
+                  className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-black/20 px-4 py-4 text-left text-white/82 transition hover:bg-black/30"
+                >
+                  <span>
+                    <span className="block font-medium text-white">Re-score now</span>
+                    <span className="mt-1 block text-sm text-white/55">
+                      Rerun the scoring engine using your current mood and latest feedback.
+                    </span>
+                  </span>
+                  <Brain className="h-4 w-4 text-violet-300" />
+                </button>
               </div>
             </motion.div>
           </div>
